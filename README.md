@@ -37,7 +37,7 @@ multi_agent_orchestration/
 ├── 03_semantic_views/     FastGen-generated YAML specs (6 semantic views)
 ├── 04_agents/             CREATE AGENT SQL for all 4 agents
 ├── 05_wrapper_procedures/ SQL stored procs wrapping DATA_AGENT_RUN
-├── 06_python_udfs/        Advanced REST API pattern with PAT + EAI
+├── 06_python_udfs/        Advanced REST API pattern: 1 generic Python UDF + 3 thin SQL wrappers
 └── deploy_all.sql         Master deployment script
 ```
 

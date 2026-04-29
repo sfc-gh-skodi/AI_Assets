@@ -55,6 +55,19 @@ GRANT USAGE ON ALL PROCEDURES IN SCHEMA DEMOS.WEWORK
 GRANT USAGE ON FUTURE PROCEDURES IN SCHEMA DEMOS.WEWORK
     TO ROLE MULTI_AGENT_USER_ROLE;
 
+-- ── FUNCTIONS (PYTHON UDFs + SQL WRAPPERS) ────────────────────
+-- Required for Step 6 (Python UDFs):
+--   CALL_CORTEX_AGENT  — generic Python UDF (SSE streaming logic)
+--   CALL_SALES_AGENT   — thin SQL wrapper
+--   CALL_HR_AGENT      — thin SQL wrapper
+--   CALL_FINANCE_AGENT — thin SQL wrapper
+-- Remove these grants if Step 6 (Python UDFs) is not deployed
+GRANT USAGE ON ALL FUNCTIONS IN SCHEMA DEMOS.WEWORK
+    TO ROLE MULTI_AGENT_USER_ROLE;
+
+GRANT USAGE ON FUTURE FUNCTIONS IN SCHEMA DEMOS.WEWORK
+    TO ROLE MULTI_AGENT_USER_ROLE;
+
 -- ── STAGE ────────────────────────────────────────────────────
 -- Read access to agent-generated reports
 -- (WRITE is not granted — regular users should not upload files)

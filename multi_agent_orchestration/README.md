@@ -108,13 +108,26 @@ Creates `MULTIAGENT` — registers the 3 stored procedures as `generic` tools an
 
 ### Step 7 (Optional) — Python UDFs
 
-Advanced alternative to the SQL stored procedure pattern. Uses the Cortex Agents REST API directly with PAT token authentication via External Access Integration.
+Advanced alternative to the SQL stored procedure pattern. Uses the Cortex Agents REST API directly with PAT token authentication and SSE streaming via External Access Integration.
+
+The pattern is split into a **generic core UDF** + **thin SQL wrappers**. All SSE streaming logic lives in one place; per-agent files are just 3-line SQL aliases.
 
 ```sql
-06_python_udfs/01_call_sales_agent.sql
-06_python_udfs/02_call_hr_agent.sql
-06_python_udfs/03_call_finance_agent.sql
+-- Deploy in this order:
+06_python_udfs/00_call_agent_generic.sql   ← generic Python UDF (deploy FIRST)
+06_python_udfs/01_call_sales_agent.sql     ← thin SQL wrapper
+06_python_udfs/02_call_hr_agent.sql        ← thin SQL wrapper
+06_python_udfs/03_call_finance_agent.sql   ← thin SQL wrapper
 ```
+
+| File | Type | Role |
+|---|---|---|
+| `00_call_agent_generic.sql` | Python UDF | `CALL_CORTEX_AGENT(AGENT_FQN, USER_QUERY)` — all SSE logic here |
+| `01_call_sales_agent.sql` | SQL UDF | `CALL_SALES_AGENT(q)` — 3-line wrapper, hardcodes Sales Agent FQN |
+| `02_call_hr_agent.sql` | SQL UDF | `CALL_HR_AGENT(q)` — 3-line wrapper, hardcodes HR Agent FQN |
+| `03_call_finance_agent.sql` | SQL UDF | `CALL_FINANCE_AGENT(q)` — 3-line wrapper, hardcodes Finance Agent FQN |
+
+To add a 4th agent, create one new SQL wrapper — no Python needed.
 
 Requires Steps 1–6 to be complete and a valid PAT token in the secret.
 
