@@ -13,7 +13,7 @@
 -- ENABLED = TRUE            → the integration is live
 --
 -- In production, replace ALL with the specific secret name:
---   ALLOWED_AUTHENTICATION_SECRETS = (DEMOS.WEWORK.CORTEX_AGENT_PAT)
+--   ALLOWED_AUTHENTICATION_SECRETS = (DEMOS.WEWORK.CORTEX_AGENT_TOKEN_SECRET)
 -- =============================================================
 
 CREATE OR REPLACE EXTERNAL ACCESS INTEGRATION DEMOS.WEWORK.CORTEX_AGENT_EXTERNAL_ACCESS

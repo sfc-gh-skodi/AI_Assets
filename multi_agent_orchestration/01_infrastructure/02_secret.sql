@@ -17,7 +17,7 @@
 -- Replace <YOUR_PAT_TOKEN_HERE> with the token you generated.
 -- =============================================================
 
-CREATE OR REPLACE SECRET DEMOS.WEWORK.CORTEX_AGENT_PAT
+CREATE OR REPLACE SECRET DEMOS.WEWORK.CORTEX_AGENT_TOKEN_SECRET
     TYPE         = GENERIC_STRING
     SECRET_STRING = '<YOUR_PAT_TOKEN_HERE>'
     COMMENT      = 'PAT token for authenticating Cortex Agents REST API calls';

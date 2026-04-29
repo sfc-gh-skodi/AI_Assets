@@ -1,106 +1,122 @@
 -- =============================================================
 -- PYTHON UDF: CALL_SALES_AGENT
 -- =============================================================
--- Advanced alternative to the SQL stored procedure pattern.
--- Uses the Cortex Agents REST API directly via Python's
--- requests library instead of DATA_AGENT_RUN().
+-- Calls the SALES_AGENT via the Cortex Agents REST API using
+-- Server-Sent Events (SSE) streaming.
 --
--- WHY USE THIS OVER THE STORED PROCEDURE?
---   - Full control over request headers and response handling
---   - Supports streaming (Server-Sent Events) if needed
---   - Can be called from outside Snowflake (e.g. Streamlit,
---     external apps) using the same PAT token pattern
---   - Better error handling and response parsing control
+-- WHY SSE STREAMING INSTEAD OF JSON?
+--   The REST API natively returns a streaming response
+--   (text/event-stream format). Streaming lets us process the
+--   answer incrementally and extract just the text deltas,
+--   rather than waiting for a large JSON blob to complete.
 --
 -- PRE-REQUISITES (run 01_infrastructure/ first):
 --   1. Network Rule    → CORTEX_AGENT_EGRESS_RULE
---   2. Secret          → CORTEX_AGENT_PAT  (your PAT token)
+--   2. Secret          → CORTEX_AGENT_TOKEN_SECRET  (PAT token)
 --   3. External Access Integration → CORTEX_AGENT_EXTERNAL_ACCESS
 --
--- HOW THE PAT TOKEN FLOW WORKS:
---   Secret (vault) → _snowflake.get_generic_secret_string()
---   → Authorization: Bearer <token> header → REST API call
+-- HOW SSE PARSING WORKS:
+--   The stream returns lines like:
+--     event: response.text.delta
+--     data: {"text": "Here is your answer..."}
+--   We track the event type, then collect every 'text' value
+--   from 'response.text.delta' events and join them at the end.
 -- =============================================================
 
-CREATE OR REPLACE FUNCTION DEMOS.WEWORK.CALL_SALES_AGENT(QUERY STRING)
+CREATE OR REPLACE FUNCTION DEMOS.WEWORK.CALL_SALES_AGENT(USER_QUERY STRING)
 RETURNS STRING
 LANGUAGE PYTHON
-RUNTIME_VERSION = '3.11'
-PACKAGES = ('requests')
-
--- Attach the External Access Integration so this UDF can:
---   a) make outbound HTTP calls to the allowed host
---   b) read the PAT secret from the vault
+RUNTIME_VERSION = '3.12'
+PACKAGES = ('requests', 'snowflake-snowpark-python')
 EXTERNAL_ACCESS_INTEGRATIONS = (CORTEX_AGENT_EXTERNAL_ACCESS)
-SECRETS = ('pat_token' = DEMOS.WEWORK.CORTEX_AGENT_PAT)
-
-AS $$
+SECRETS = ('agent_token' = DEMOS.WEWORK.CORTEX_AGENT_TOKEN_SECRET)
+HANDLER = 'run_agent'
+AS
+$$
+import _snowflake
 import requests
 import json
-import _snowflake  # Snowflake internal module — only available inside Snowflake
 
-def call_sales_agent(query: str) -> str:
+def run_agent(user_query):
     """
-    Calls the SALES_AGENT via the Cortex Agents REST API.
+    Calls the SALES_AGENT via REST API and returns the text response.
+    Handles Server-Sent Events (SSE) streaming format.
 
-    Steps:
-      1. Read the PAT token from Snowflake Secrets vault
-      2. Build the API request payload
-      3. POST to the Cortex Agents run endpoint
-      4. Extract and return the answer text
+    The Sales Agent answers questions about:
+    - Deals, pipeline stages, amounts, reps, accounts
+    - Revenue by product, region, and month
     """
+    # Step 1: Retrieve the PAT token securely from Snowflake Secrets.
+    # 'agent_token' matches the alias declared in SECRETS = (...) above.
+    try:
+        token = _snowflake.get_generic_secret_string('agent_token')
+    except Exception as e:
+        return f"Error: Could not read secret. Verify grants. Details: {str(e)}"
 
-    # Step 1: Retrieve PAT token securely from the Snowflake Secret.
-    # 'pat_token' matches the alias we declared in SECRETS = (...) above.
-    # The actual token value is never visible in SQL query history or logs.
-    pat_token = _snowflake.get_generic_secret_string('pat_token')
+    # Step 2: Build the REST API endpoint.
+    # Format: https://<org>-<account>.snowflakecomputing.com
+    #         /api/v2/databases/<db>/schemas/<schema>/agents/<agent>:run
+    url = "https://sfpscogs-thb83496.snowflakecomputing.com/api/v2/databases/DEMOS/schemas/WEWORK/agents/SALES_AGENT:run"
 
-    # Step 2: Build the request payload.
-    # The messages array follows the OpenAI-style chat format:
-    #   role: "user"    → the question being asked
-    #   content type: "text" → plain text input
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+        "Accept": "text/event-stream"  # Request SSE streaming response
+    }
+
     payload = {
         "messages": [
             {
                 "role": "user",
-                "content": [{"type": "text", "text": query}]
+                "content": [{"type": "text", "text": user_query}]
             }
-        ],
-        "stream": False  # Return full JSON response, not streaming SSE
+        ]
     }
 
-    # Step 3: Call the Cortex Agents REST API endpoint.
-    # URL format: https://<org>-<account>.snowflakecomputing.com
-    #             /api/v2/databases/<db>/schemas/<schema>/agents/<name>:run
-    account_url = "https://sfpscogs-thb83496.snowflakecomputing.com"
-    endpoint = f"{account_url}/api/v2/databases/DEMOS/schemas/WEWORK/agents/SALES_AGENT:run"
+    try:
+        # Step 3: POST to the agent endpoint with stream=True so we
+        # can process the response line-by-line as it arrives.
+        response = requests.post(url, headers=headers, json=payload, stream=True)
 
-    response = requests.post(
-        endpoint,
-        headers={
-            "Authorization": f"Bearer {pat_token}",  # PAT authentication
-            "Content-Type": "application/json",
-            "Accept": "application/json"
-        },
-        json=payload,
-        timeout=60  # Fail gracefully if agent takes too long
-    )
+        if response.status_code != 200:
+            return f"API Error {response.status_code}: {response.text}"
 
-    # Step 4: Parse the response and extract the answer text.
-    # The response body contains a messages array; the assistant's
-    # answer is in the last message's content.
-    if response.status_code == 200:
-        data = response.json()
-        # Navigate: messages → last message → content → first item → text
-        messages = data.get("messages", [])
-        for msg in reversed(messages):
-            if msg.get("role") == "assistant":
-                content = msg.get("content", [])
-                if content:
-                    return content[0].get("text", "No text in response")
-        return json.dumps(data)  # Return raw JSON if structure is unexpected
-    else:
-        return f"Error {response.status_code}: {response.text}"
+        # Step 4: Parse the SSE stream.
+        # Each SSE message looks like:
+        #   event: <event_type>
+        #   data: <json_payload>
+        #   (blank line separating messages)
+        final_answer = []
+        current_event = None
+
+        for line in response.iter_lines():
+            if not line:
+                continue
+
+            decoded_line = line.decode('utf-8')
+
+            # Track the current event type
+            if decoded_line.startswith('event: '):
+                current_event = decoded_line[7:].strip()
+
+            # Extract the data payload
+            if decoded_line.startswith('data: '):
+                data_str = decoded_line[6:]
+                if data_str == '[DONE]':
+                    break  # Stream complete
+
+                try:
+                    data = json.loads(data_str)
+                    # Collect only text delta events — these carry the answer
+                    if current_event == 'response.text.delta' and 'text' in data:
+                        final_answer.append(data['text'])
+                except json.JSONDecodeError:
+                    continue  # Skip malformed lines
+
+        return "".join(final_answer) if final_answer else "Agent returned no text content."
+
+    except Exception as e:
+        return f"Connection error: {str(e)}"
 $$;
 
 -- Quick test (uncomment to run):

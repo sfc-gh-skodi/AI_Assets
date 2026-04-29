@@ -70,7 +70,7 @@ GRANT USAGE ON INTEGRATION CORTEX_AGENT_EXTERNAL_ACCESS
 -- ── SECRET ────────────────────────────────────────────────────
 -- Required only if the user will call the Python UDFs (Step 6)
 -- Remove this grant if Step 6 (Python UDFs) is not deployed
-GRANT READ ON SECRET DEMOS.WEWORK.CORTEX_AGENT_PAT
+GRANT READ ON SECRET DEMOS.WEWORK.CORTEX_AGENT_TOKEN_SECRET
     TO ROLE MULTI_AGENT_USER_ROLE;
 
 -- ── WAREHOUSE ────────────────────────────────────────────────
