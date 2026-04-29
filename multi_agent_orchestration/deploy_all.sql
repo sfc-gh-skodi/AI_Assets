@@ -68,9 +68,10 @@
 -- ── STEP 7 (OPTIONAL): PYTHON UDFs ───────────────────────────
 -- Advanced REST API pattern — requires PAT token in secret
 
--- !source 06_python_udfs/01_call_sales_agent.sql
--- !source 06_python_udfs/02_call_hr_agent.sql
--- !source 06_python_udfs/03_call_finance_agent.sql
+-- !source 06_python_udfs/00_call_agent_generic.sql   ← deploy this FIRST
+-- !source 06_python_udfs/01_call_sales_agent.sql      ← thin wrapper
+-- !source 06_python_udfs/02_call_hr_agent.sql         ← thin wrapper
+-- !source 06_python_udfs/03_call_finance_agent.sql    ← thin wrapper
 
 -- ── VERIFICATION ─────────────────────────────────────────────
 SHOW SEMANTIC VIEWS IN SCHEMA DEMOS.WEWORK;
