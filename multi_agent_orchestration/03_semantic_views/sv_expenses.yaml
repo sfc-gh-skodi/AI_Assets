@@ -1,0 +1,35 @@
+name: SV_EXPENSES
+description: Company expense transactions by department, category and vendor
+tables:
+  - name: EXPENSES
+    base_table:
+      database: DEMOS
+      schema: WEWORK
+      table: EXPENSES
+    dimensions:
+      - name: EXPENSE_ID
+        expr: EXPENSE_ID
+        data_type: NUMBER
+      - name: DEPARTMENT
+        expr: DEPARTMENT
+        data_type: VARCHAR
+      - name: CATEGORY
+        expr: CATEGORY
+        data_type: VARCHAR
+      - name: VENDOR
+        expr: VENDOR
+        data_type: VARCHAR
+      - name: EMPLOYEE_ID
+        expr: EMPLOYEE_ID
+        data_type: NUMBER
+      - name: APPROVED
+        expr: APPROVED
+        data_type: BOOLEAN
+    time_dimensions:
+      - name: EXPENSE_DATE
+        expr: EXPENSE_DATE
+        data_type: DATE
+    facts:
+      - name: AMOUNT
+        expr: AMOUNT
+        data_type: NUMBER

@@ -1,0 +1,34 @@
+name: SV_OPEN_ROLES
+description: Open job roles by department, level, location and hiring status
+tables:
+  - name: OPEN_ROLES
+    base_table:
+      database: DEMOS
+      schema: WEWORK
+      table: OPEN_ROLES
+    dimensions:
+      - name: ROLE_ID
+        expr: ROLE_ID
+        data_type: NUMBER
+      - name: TITLE
+        expr: TITLE
+        data_type: VARCHAR
+      - name: DEPARTMENT
+        expr: DEPARTMENT
+        data_type: VARCHAR
+      - name: LEVEL
+        expr: LEVEL
+        data_type: VARCHAR
+      - name: LOCATION
+        expr: LOCATION
+        data_type: VARCHAR
+      - name: STATUS
+        expr: STATUS
+        data_type: VARCHAR
+      - name: HIRING_MANAGER
+        expr: HIRING_MANAGER
+        data_type: VARCHAR
+    time_dimensions:
+      - name: POSTED_DATE
+        expr: POSTED_DATE
+        data_type: DATE

@@ -1,0 +1,35 @@
+name: SV_SALES_PIPELINE
+description: Sales pipeline tracking deals, stages, amounts, reps and regions
+tables:
+  - name: SALES_PIPELINE
+    base_table:
+      database: DEMOS
+      schema: WEWORK
+      table: SALES_PIPELINE
+    dimensions:
+      - name: DEAL_ID
+        expr: DEAL_ID
+        data_type: NUMBER
+      - name: DEAL_NAME
+        expr: DEAL_NAME
+        data_type: VARCHAR
+      - name: ACCOUNT_NAME
+        expr: ACCOUNT_NAME
+        data_type: VARCHAR
+      - name: STAGE
+        expr: STAGE
+        data_type: VARCHAR
+      - name: REP_NAME
+        expr: REP_NAME
+        data_type: VARCHAR
+      - name: REGION
+        expr: REGION
+        data_type: VARCHAR
+    time_dimensions:
+      - name: CLOSE_DATE
+        expr: CLOSE_DATE
+        data_type: DATE
+    facts:
+      - name: AMOUNT
+        expr: AMOUNT
+        data_type: NUMBER

@@ -1,0 +1,29 @@
+name: SV_BUDGET
+description: Department budget vs actuals by category and month
+tables:
+  - name: BUDGET
+    base_table:
+      database: DEMOS
+      schema: WEWORK
+      table: BUDGET
+    dimensions:
+      - name: BUDGET_ID
+        expr: BUDGET_ID
+        data_type: NUMBER
+      - name: DEPARTMENT
+        expr: DEPARTMENT
+        data_type: VARCHAR
+      - name: CATEGORY
+        expr: CATEGORY
+        data_type: VARCHAR
+    time_dimensions:
+      - name: MONTH
+        expr: MONTH
+        data_type: DATE
+    facts:
+      - name: BUDGET_AMT
+        expr: BUDGET_AMT
+        data_type: NUMBER
+      - name: ACTUAL_AMT
+        expr: ACTUAL_AMT
+        data_type: NUMBER

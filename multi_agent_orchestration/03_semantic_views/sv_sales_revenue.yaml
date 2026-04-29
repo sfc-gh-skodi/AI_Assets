@@ -1,0 +1,32 @@
+name: SV_SALES_REVENUE
+description: Monthly sales revenue by product and region
+tables:
+  - name: SALES_REVENUE
+    base_table:
+      database: DEMOS
+      schema: WEWORK
+      table: SALES_REVENUE
+    dimensions:
+      - name: REVENUE_ID
+        expr: REVENUE_ID
+        data_type: NUMBER
+      - name: PRODUCT
+        expr: PRODUCT
+        data_type: VARCHAR
+      - name: REGION
+        expr: REGION
+        data_type: VARCHAR
+      - name: UNITS_SOLD
+        expr: UNITS_SOLD
+        data_type: NUMBER
+      - name: DEAL_ID
+        expr: DEAL_ID
+        data_type: NUMBER
+    time_dimensions:
+      - name: MONTH
+        expr: MONTH
+        data_type: DATE
+    facts:
+      - name: REVENUE
+        expr: REVENUE
+        data_type: NUMBER

@@ -1,0 +1,41 @@
+name: SV_EMPLOYEES
+description: Employee headcount, departments, titles, salaries and locations
+tables:
+  - name: EMPLOYEES
+    base_table:
+      database: DEMOS
+      schema: WEWORK
+      table: EMPLOYEES
+    primary_key:
+      columns:
+        - EMPLOYEE_ID
+    dimensions:
+      - name: EMPLOYEE_ID
+        expr: EMPLOYEE_ID
+        data_type: NUMBER
+      - name: FULL_NAME
+        expr: FULL_NAME
+        data_type: VARCHAR
+      - name: DEPARTMENT
+        expr: DEPARTMENT
+        data_type: VARCHAR
+      - name: TITLE
+        expr: TITLE
+        data_type: VARCHAR
+      - name: STATUS
+        expr: STATUS
+        data_type: VARCHAR
+      - name: MANAGER_ID
+        expr: MANAGER_ID
+        data_type: NUMBER
+      - name: LOCATION
+        expr: LOCATION
+        data_type: VARCHAR
+    time_dimensions:
+      - name: HIRE_DATE
+        expr: HIRE_DATE
+        data_type: DATE
+    facts:
+      - name: SALARY
+        expr: SALARY
+        data_type: NUMBER
