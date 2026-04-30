@@ -30,13 +30,16 @@ LANGUAGE SQL
 AS
 BEGIN
     -- :QUERY uses colon-prefix syntax (Snowflake bind variable)
-    -- to safely reference the procedure parameter inside SQL
+    -- to safely reference the procedure parameter inside SQL.
+    -- TO_JSON() wraps the string in JSON quotes AND escapes any
+    -- special characters (double-quotes, backslashes, newlines),
+    -- preventing malformed JSON if the query contains those chars.
     RETURN PARSE_JSON(
         SNOWFLAKE.CORTEX.DATA_AGENT_RUN(
             'DEMOS.WEWORK.SALES_AGENT',
-            '{"messages":[{"role":"user","content":[{"type":"text","text":"'
-                || :QUERY ||
-            '"}]}],"stream":false}'
+            '{"messages":[{"role":"user","content":[{"type":"text","text":'
+                || TO_JSON(:QUERY) ||
+            '}]}],"stream":false}'
         )
     );
 END;

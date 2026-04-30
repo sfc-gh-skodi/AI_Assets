@@ -16,9 +16,6 @@ tables:
       - name: REGION
         expr: REGION
         data_type: VARCHAR
-      - name: UNITS_SOLD
-        expr: UNITS_SOLD
-        data_type: NUMBER
       - name: DEAL_ID
         expr: DEAL_ID
         data_type: NUMBER
@@ -29,4 +26,7 @@ tables:
     facts:
       - name: REVENUE
         expr: REVENUE
+        data_type: NUMBER
+      - name: UNITS_SOLD
+        expr: UNITS_SOLD
         data_type: NUMBER

@@ -18,12 +18,15 @@ RETURNS VARIANT   -- JSON response from the HR Agent
 LANGUAGE SQL
 AS
 BEGIN
+    -- TO_JSON() safely encodes the query as a JSON string value,
+    -- escaping any double-quotes, backslashes, or newlines that
+    -- would otherwise produce malformed JSON.
     RETURN PARSE_JSON(
         SNOWFLAKE.CORTEX.DATA_AGENT_RUN(
             'DEMOS.WEWORK.HR_AGENT',
-            '{"messages":[{"role":"user","content":[{"type":"text","text":"'
-                || :QUERY ||
-            '"}]}],"stream":false}'
+            '{"messages":[{"role":"user","content":[{"type":"text","text":'
+                || TO_JSON(:QUERY) ||
+            '}]}],"stream":false}'
         )
     );
 END;

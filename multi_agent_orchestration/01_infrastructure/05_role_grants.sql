@@ -75,14 +75,18 @@ GRANT READ ON STAGE DEMOS.WEWORK.AGENT_REPORTS
     TO ROLE MULTI_AGENT_USER_ROLE;
 
 -- ── EXTERNAL ACCESS INTEGRATION ──────────────────────────────
--- Required only if the user will call the Python UDFs (Step 6)
--- Remove this grant if Step 6 (Python UDFs) is not deployed
+-- Required for any role that will CREATE or ALTER the Python UDFs
+-- (06_python_udfs/). Callers of the UDFs do NOT need this grant —
+-- Python UDFs run with owner's rights, so the EAI and Secret
+-- grants were already exercised at CREATE FUNCTION time.
+-- Safe to keep for admin roles; remove if granting to end users only.
 GRANT USAGE ON INTEGRATION CORTEX_AGENT_EXTERNAL_ACCESS
     TO ROLE MULTI_AGENT_USER_ROLE;
 
 -- ── SECRET ────────────────────────────────────────────────────
--- Required only if the user will call the Python UDFs (Step 6)
--- Remove this grant if Step 6 (Python UDFs) is not deployed
+-- Same as above — needed for UDF creators, not callers.
+-- The UDF reads the secret internally via _snowflake.get_generic_secret_string()
+-- under the owner's privileges. End users calling the UDF do not need READ here.
 GRANT READ ON SECRET DEMOS.WEWORK.CORTEX_AGENT_TOKEN_SECRET
     TO ROLE MULTI_AGENT_USER_ROLE;
 
